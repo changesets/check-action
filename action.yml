@@ -1,12 +1,8 @@
-name: Changesets
-description: A GitHub action to automate releases with Changesets
+name: Changesets Check Action
+description: A GitHub action to comment on PRs with whether a PR has a changeset or not and link to documentation explaining to contributors how to create a changeset.
 runs:
   using: "node12"
   main: "dist/index.js"
-inputs:
-  publish:
-    description: "The command to use to build and publish packages"
-    required: false
 branding:
   icon: "package"
   color: "blue"
