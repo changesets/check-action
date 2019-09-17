@@ -1,0 +1,37 @@
+{
+  "name": "@changesets/action",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "parcel": "^1.12.3",
+    "typescript": "^3.5.3"
+  },
+  "scripts": {
+    "build": "parcel build ./index.ts --no-source-maps --target=node --bundle-node-modules"
+  },
+  "dependencies": {
+    "@actions/core": "^1.0.0",
+    "@actions/exec": "^1.0.0",
+    "@actions/github": "^1.0.0",
+    "@actions/io": "^1.0.0",
+    "@actions/tool-cache": "^1.0.0",
+    "@babel/core": "^7.6.0",
+    "@babel/preset-env": "^7.6.0",
+    "@babel/preset-typescript": "^7.6.0",
+    "@types/fs-extra": "^8.0.0",
+    "@types/jest": "^24.0.18",
+    "@types/node": "^12.7.1",
+    "@types/semver": "^6.0.2",
+    "babel-jest": "^24.9.0",
+    "fs-extra": "^8.1.0",
+    "get-workspaces": "^0.4.0",
+    "jest": "^24.9.0",
+    "mdast-util-to-string": "^1.0.6",
+    "remark-parse": "^7.0.1",
+    "remark-stringify": "^7.0.3",
+    "semver": "^6.3.0",
+    "tempy": "^0.3.0",
+    "unified": "^8.3.2"
+  }
+}
