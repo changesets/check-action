@@ -25,7 +25,7 @@ Not sure what this means? [Click here to learn what changesets are](https://gith
 ${changesetActionSignature}`;
 }
 
-function getRemovedMessage(commitSha: string) {
+function getDeletedMessage(commitSha: string) {
   return `###  🦋  It looks like you're doing a release 📎
 Latest commit: ${commitSha}
 
@@ -51,13 +51,13 @@ const getChangesetPresence = (
   params: PullsListFilesParams
 ) =>
   octokit.pulls.listFiles(params).then(files => {
-    let hasRemoved = files.data.find(
+    let hasDeleted = files.data.find(
       file =>
-        file.filename.startsWith(".changeset") && file.status === "removed"
+        file.filename.startsWith(".changeset") && file.status === "deleted"
     );
 
-    if (hasRemoved) {
-      return "removed";
+    if (hasDeleted) {
+      return "deleted";
     }
     let hasAdded = files.data.find(
       file => file.filename.startsWith(".changeset") && file.status === "added"
@@ -99,8 +99,8 @@ const getChangesetPresence = (
     case "added": {
       message = getApproveMessage(github.context.sha);
     }
-    case "removed": {
-      message = getRemovedMessage(github.context.sha);
+    case "deleted": {
+      message = getDeletedMessage(github.context.sha);
     }
     case "none": {
       message = getAbsentMessage(github.context.sha);
