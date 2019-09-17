@@ -16,6 +16,7 @@ jobs:
     name: Changeset Check
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@master
       - name: Comment on PR
         uses: changesets/check-action@master
         env:
