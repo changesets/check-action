@@ -1,8 +1,19 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { IssuesListCommentsParams, PullsListFilesParams } from "@octokit/rest";
+// @ts-ignore
+import humanId from "human-id";
 
 const changesetActionSignature = `<!-- changeset-check-action-signature -->`;
+
+let addChangesetUrl = `${
+  github.context.payload.pull_request!.head.repo.html_url
+}/new/${
+  github.context.payload.pull_request!.head.ref
+}?filename=.changeset/${humanId({
+  separator: "-",
+  capitalize: false
+})}.md`;
 
 function getAbsentMessage(commitSha: string) {
   return `###  💥  No Changeset
@@ -13,6 +24,8 @@ Merging this PR will not cause any packages to be released. If these changes sho
 **If these changes should be published to npm, you need to add a changeset.**
 
 [Click here to learn what changesets are, and how to add one](https://github.com/Noviny/changesets/blob/master/docs/adding-a-changeset.md).
+
+[Click here if you're a maintainer who wants to add a changeset to this PR](${addChangesetUrl})
 ${changesetActionSignature}`;
 }
 function getApproveMessage(commitSha: string) {
@@ -68,7 +81,6 @@ const getHasChangeset = (
       ...github.context.repo
     })
   ]);
-  let latestCommit = github.context.sha;
 
   let message = hasChangeset
     ? getApproveMessage(github.context.sha)
