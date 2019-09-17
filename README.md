@@ -1,4 +1,4 @@
-# Changesets Release Action
+# Changesets Check Action
 
 This action for [Changesets](https://github.com/atlassian/changesets) comments on PRs with whether a PR has a changeset or not and links to documentation explaining to contributors how to create a changeset.
 
