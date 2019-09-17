@@ -25,6 +25,16 @@ Not sure what this means? [Click here to learn what changesets are](https://gith
 ${changesetActionSignature}`;
 }
 
+function getDeletedMessage(commitSha: string) {
+  return `###  🦋  It looks like you're doing a release 📎
+Latest commit: ${commitSha}
+
+(this PR removes changesets - if this is unintentional, you probably shouldn't merge this)
+
+Not sure what this means? [Click here to learn what changesets are](https://github.com/Noviny/changesets/blob/master/docs/adding-a-changeset.md).
+${changesetActionSignature}`;
+}
+
 const getCommentId = (
   octokit: github.GitHub,
   params: IssuesListCommentsParams
@@ -36,15 +46,28 @@ const getCommentId = (
     return changesetBotComment ? changesetBotComment.id : null;
   });
 
-const getHasChangeset = (
+const getChangesetPresence = (
   octokit: github.GitHub,
   params: PullsListFilesParams
 ) =>
   octokit.pulls.listFiles(params).then(files => {
-    const changesetFiles = files.data.filter(
+    let hasDeleted = files.data.find(
+      file =>
+        file.filename.startsWith(".changeset") && file.status === "deleted"
+    );
+
+    if (hasDeleted) {
+      return "deleted";
+    }
+    let hasAdded = files.data.find(
       file => file.filename.startsWith(".changeset") && file.status === "added"
     );
-    return changesetFiles.length > 0;
+
+    if (hasAdded) {
+      return "added";
+    }
+
+    return "none";
   });
 
 (async () => {
@@ -58,21 +81,31 @@ const getHasChangeset = (
 
   const octokit = new github.GitHub(githubToken);
   console.log(JSON.stringify(github.context.payload, null, 2));
-  const [commentId, hasChangeset] = await Promise.all([
+  const [commentId, changesetPresence] = await Promise.all([
     getCommentId(octokit, {
       issue_number: github.context.payload.pull_request!.number,
       ...github.context.repo
     }),
-    getHasChangeset(octokit, {
+
+    getChangesetPresence(octokit, {
       pull_number: github.context.payload.pull_request!.number,
       ...github.context.repo
     })
   ]);
-  let latestCommit = github.context.sha;
 
-  let message = hasChangeset
-    ? getApproveMessage(github.context.sha)
-    : getAbsentMessage(github.context.sha);
+  let message = "";
+
+  switch (changesetPresence) {
+    case "added": {
+      message = getApproveMessage(github.context.sha);
+    }
+    case "deleted": {
+      message = getDeletedMessage(github.context.sha);
+    }
+    case "none": {
+      message = getAbsentMessage(github.context.sha);
+    }
+  }
 
   if (commentId) {
     return octokit.issues.updateComment({
