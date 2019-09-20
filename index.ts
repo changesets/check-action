@@ -80,6 +80,7 @@ const postOrUpdateComment = async (
     issue_number: github.context.payload.pull_request!.number,
     ...github.context.repo
   });
+  console.log("got comment ID", commentId);
 
   // This is if there are no new changesets present
   if (releasePlan.changesets.length < 0) {
@@ -96,7 +97,9 @@ const postOrUpdateComment = async (
     console.log("active comment made", thing);
     return;
   }
+  console.log("a failure to return");
 })().catch(err => {
+  console.log("something was thrown");
   console.error(err);
   core.setFailed(err.message);
 });
