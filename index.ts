@@ -37,11 +37,12 @@ const getCommentId = (
     return changesetBotComment ? changesetBotComment.id : null;
   });
 
-const postOrUpdateComment = (
+const postOrUpdateComment = async (
   commentId: number | null,
   client: github.GitHub,
   message: string
 ) => {
+  console.log("updating or commeting", commentId);
   if (commentId) {
     return client.issues.updateComment({
       comment_id: commentId,
@@ -49,12 +50,15 @@ const postOrUpdateComment = (
       ...github.context.repo
     });
   }
+
+  console.log("we expect there to be no comment id");
   return client.issues.createComment({
     ...github.context.repo,
     issue_number: github.context.payload.pull_request!.number,
     body: message
   });
 };
+
 (async () => {
   // TODO: remove all console logs
   console.log("Starting up comment bot");
@@ -80,12 +84,17 @@ const postOrUpdateComment = (
   // This is if there are no new changesets present
   if (releasePlan.changesets.length < 0) {
     let message = getAbsentMessage(github.context.sha);
-    return postOrUpdateComment(commentId, client, message);
+    console.log("got the absent message", message);
+    let thing = await postOrUpdateComment(commentId, client, message);
+    console.log("comment made", thing);
+    return;
   }
   // This is if there are no new changesets present
   if (releasePlan.changesets.length > 0) {
     let message = getApproveMessage(github.context.sha);
-    return postOrUpdateComment(commentId, client, message);
+    let thing = await postOrUpdateComment(commentId, client, message);
+    console.log("active comment made", thing);
+    return;
   }
 })().catch(err => {
   console.error(err);
