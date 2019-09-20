@@ -56,6 +56,8 @@ const postOrUpdateComment = (
   });
 };
 (async () => {
+  // TODO: remove all console logs
+  console.log("Starting up comment bot");
   let githubToken = process.env.GITHUB_TOKEN;
 
   if (!githubToken) {
@@ -65,7 +67,10 @@ const postOrUpdateComment = (
 
   const client = new github.GitHub(githubToken);
 
+  console.log("about to get release plan");
   const releasePlan = await getReleasePlan(process.cwd(), true);
+  console.log("acquired release plan");
+  console.log("RP", releasePlan);
 
   const commentId = await getCommentId(client, {
     issue_number: github.context.payload.pull_request!.number,
