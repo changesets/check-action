@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { IssuesListCommentsParams, PullsListFilesParams } from "@octokit/rest";
+import getReleasePlan from "@changesets/get-release-plan";
+import { IssuesListCommentsParams } from "@octokit/rest";
 
 const changesetActionSignature = `<!-- changeset-check-action-signature -->`;
 
@@ -26,27 +27,34 @@ ${changesetActionSignature}`;
 }
 
 const getCommentId = (
-  octokit: github.GitHub,
+  client: github.GitHub,
   params: IssuesListCommentsParams
 ) =>
-  octokit.issues.listComments(params).then(comments => {
+  client.issues.listComments(params).then(comments => {
     const changesetBotComment = comments.data.find(comment =>
       comment.body.includes(changesetActionSignature)
     );
     return changesetBotComment ? changesetBotComment.id : null;
   });
 
-const getHasChangeset = (
-  octokit: github.GitHub,
-  params: PullsListFilesParams
-) =>
-  octokit.pulls.listFiles(params).then(files => {
-    const changesetFiles = files.data.filter(
-      file => file.filename.startsWith(".changeset") && file.status === "added"
-    );
-    return changesetFiles.length > 0;
+const postOrUpdateComment = (
+  commentId: number | null,
+  client: github.GitHub,
+  message: string
+) => {
+  if (commentId) {
+    return client.issues.updateComment({
+      comment_id: commentId,
+      body: message,
+      ...github.context.repo
+    });
+  }
+  return client.issues.createComment({
+    ...github.context.repo,
+    issue_number: github.context.payload.pull_request!.number,
+    body: message
   });
-
+};
 (async () => {
   let githubToken = process.env.GITHUB_TOKEN;
 
@@ -54,38 +62,26 @@ const getHasChangeset = (
     core.setFailed("Please add the GITHUB_TOKEN to the changesets action");
     return;
   }
-  let repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
 
-  const octokit = new github.GitHub(githubToken);
-  console.log(JSON.stringify(github.context.payload, null, 2));
-  const [commentId, hasChangeset] = await Promise.all([
-    getCommentId(octokit, {
-      issue_number: github.context.payload.pull_request!.number,
-      ...github.context.repo
-    }),
-    getHasChangeset(octokit, {
-      pull_number: github.context.payload.pull_request!.number,
-      ...github.context.repo
-    })
-  ]);
-  let latestCommit = github.context.sha;
+  const client = new github.GitHub(githubToken);
 
-  let message = hasChangeset
-    ? getApproveMessage(github.context.sha)
-    : getAbsentMessage(github.context.sha);
+  const releasePlan = await getReleasePlan(process.cwd(), true);
 
-  if (commentId) {
-    return octokit.issues.updateComment({
-      comment_id: commentId,
-      body: message,
-      ...github.context.repo
-    });
-  }
-  return octokit.issues.createComment({
-    ...github.context.repo,
+  const commentId = await getCommentId(client, {
     issue_number: github.context.payload.pull_request!.number,
-    body: message
+    ...github.context.repo
   });
+
+  // This is if there are no new changesets present
+  if (releasePlan.changesets.length < 0) {
+    let message = getAbsentMessage(github.context.sha);
+    return postOrUpdateComment(commentId, client, message);
+  }
+  // This is if there are no new changesets present
+  if (releasePlan.changesets.length > 0) {
+    let message = getApproveMessage(github.context.sha);
+    return postOrUpdateComment(commentId, client, message);
+  }
 })().catch(err => {
   console.error(err);
   core.setFailed(err.message);
