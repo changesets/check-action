@@ -2,9 +2,6 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import getReleasePlan from "@changesets/get-release-plan";
 import { IssuesListCommentsParams } from "@octokit/rest";
-import fs from "fs";
-import getWorkspaces from "get-workspaces";
-import read from "@changesets/read";
 
 const changesetActionSignature = `<!-- changeset-check-action-signature -->`;
 
@@ -69,20 +66,8 @@ const postOrUpdateComment = async (
   }
 
   const client = new github.GitHub(githubToken);
-
-  console.log(process.cwd());
-  console.log(fs.readdirSync(process.cwd()));
-
-  let ws = await getWorkspaces();
-  let changesets = await read(process.cwd(), true);
-  let changesetsAll = await read(process.cwd(), false);
-  console.log(ws);
-  console.log("since master true", changesets);
-  console.log("since master false", changesetsAll);
-
   const releasePlan = await getReleasePlan(process.cwd(), true);
 
-  console.log(releasePlan);
   const commentId = await getCommentId(client, {
     issue_number: github.context.payload.pull_request!.number,
     ...github.context.repo
