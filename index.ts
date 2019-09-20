@@ -77,8 +77,8 @@ const postOrUpdateComment = async (
   let changesets = await read(process.cwd(), true);
   let changesetsAll = await read(process.cwd(), false);
   console.log(ws);
-  console.log(changesets);
-  console.log(changesetsAll);
+  console.log("since master true", changesets);
+  console.log("since master false", changesetsAll);
 
   const releasePlan = await getReleasePlan(process.cwd(), true);
 
