@@ -4,6 +4,7 @@ import getReleasePlan from "@changesets/get-release-plan";
 import { IssuesListCommentsParams } from "@octokit/rest";
 import fs from "fs";
 import getWorkspaces from "get-workspaces";
+import read from "@changesets/read";
 
 const changesetActionSignature = `<!-- changeset-check-action-signature -->`;
 
@@ -73,9 +74,15 @@ const postOrUpdateComment = async (
   console.log(fs.readdirSync(process.cwd()));
 
   let ws = await getWorkspaces();
+  let changesets = await read(process.cwd(), true);
+  let changesetsAll = await read(process.cwd(), false);
   console.log(ws);
+  console.log(changesets);
+  console.log(changesetsAll);
 
   const releasePlan = await getReleasePlan(process.cwd(), true);
+
+  console.log(releasePlan);
   const commentId = await getCommentId(client, {
     issue_number: github.context.payload.pull_request!.number,
     ...github.context.repo
@@ -83,11 +90,11 @@ const postOrUpdateComment = async (
 
   if (releasePlan.changesets.length > 0) {
     let message = getApproveMessage(github.context.sha);
-    let thing = await postOrUpdateComment(commentId, client, message);
+    await postOrUpdateComment(commentId, client, message);
     return;
   } else {
     let message = getAbsentMessage(github.context.sha);
-    let thing = await postOrUpdateComment(commentId, client, message);
+    await postOrUpdateComment(commentId, client, message);
   }
 })().catch(err => {
   console.error(err);
