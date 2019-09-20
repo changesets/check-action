@@ -82,22 +82,16 @@ const postOrUpdateComment = async (
   });
   console.log("got comment ID", commentId);
 
-  // This is if there are no new changesets present
-  if (releasePlan.changesets.length < 0) {
-    let message = getAbsentMessage(github.context.sha);
-    console.log("got the absent message", message);
-    let thing = await postOrUpdateComment(commentId, client, message);
-    console.log("comment made", thing);
-    return;
-  }
-  // This is if there are no new changesets present
   if (releasePlan.changesets.length > 0) {
     let message = getApproveMessage(github.context.sha);
     let thing = await postOrUpdateComment(commentId, client, message);
     console.log("active comment made", thing);
-    return;
+  } else {
+    let message = getAbsentMessage(github.context.sha);
+    console.log("got the absent message", message);
+    let thing = await postOrUpdateComment(commentId, client, message);
+    console.log("comment made", thing);
   }
-  console.log("a failure to return");
 })().catch(err => {
   console.log("something was thrown");
   console.error(err);
