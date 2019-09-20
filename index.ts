@@ -3,6 +3,7 @@ import * as github from "@actions/github";
 import getReleasePlan from "@changesets/get-release-plan";
 import { IssuesListCommentsParams } from "@octokit/rest";
 import fs from "fs";
+import getWorkspaces from "get-workspaces";
 
 const changesetActionSignature = `<!-- changeset-check-action-signature -->`;
 
@@ -70,6 +71,9 @@ const postOrUpdateComment = async (
 
   console.log(process.cwd());
   console.log(fs.readdirSync(process.cwd()));
+
+  let ws = await getWorkspaces();
+  console.log(ws);
 
   const releasePlan = await getReleasePlan(process.cwd(), true);
   const commentId = await getCommentId(client, {
