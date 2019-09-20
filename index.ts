@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import getReleasePlan from "@changesets/get-release-plan";
 import { IssuesListCommentsParams } from "@octokit/rest";
+import fs from "fs";
 
 const changesetActionSignature = `<!-- changeset-check-action-signature -->`;
 
@@ -68,6 +69,7 @@ const postOrUpdateComment = async (
   const client = new github.GitHub(githubToken);
 
   console.log(process.cwd());
+  console.log(fs.readdirSync(process.cwd()));
 
   const releasePlan = await getReleasePlan(process.cwd(), true);
   const commentId = await getCommentId(client, {
